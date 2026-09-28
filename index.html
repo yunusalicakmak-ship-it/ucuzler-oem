@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Üçüzler Otomotiv OEM Arama</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f4f6;
+  color:#222;
+}
+header{
+  background:#a50000;
+  color:white;
+  padding:22px 15px;
+  text-align:center;
+}
+header h1{margin:0;font-size:26px}
+header p{margin:6px 0 0}
+.container{
+  max-width:800px;
+  margin:auto;
+  padding:20px;
+}
+.search-box{
+  display:flex;
+  gap:8px;
+  margin-bottom:20px;
+}
+input{
+  flex:1;
+  padding:16px;
+  font-size:18px;
+  border:2px solid #ccc;
+  border-radius:10px;
+}
+button{
+  background:#a50000;
+  color:white;
+  border:0;
+  border-radius:10px;
+  padding:0 20px;
+  font-size:17px;
+  font-weight:bold;
+}
+.card{
+  background:white;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:15px;
+  box-shadow:0 2px 10px #00000015;
+}
+.oem{
+  color:#a50000;
+  font-size:23px;
+  font-weight:bold;
+}
+.vehicle{
+  padding:8px 0;
+  border-bottom:1px solid #eee;
+}
+.note{
+  margin-top:15px;
+  padding:12px;
+  background:#fff3cd;
+  border-radius:8px;
+}
+.badge{
+  display:inline-block;
+  margin-top:10px;
+  background:#d9f7df;
+  color:#126b27;
+  padding:6px 10px;
+  border-radius:20px;
+  font-weight:bold;
+}
+#message{
+  text-align:center;
+  padding:25px;
+  color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>ÜÇÜZLER OTOMOTİV</h1>
+<p>OEM / Araç Uyumluluk Arama</p>
+</header>
+
+<div class="container">
+
+<div class="search-box">
+<input id="search" placeholder="OEM veya araç yazın..." autocomplete="off">
+<button onclick="searchOEM()">ARA</button>
+</div>
+
+<div id="results"></div>
+<div id="message">OEM numarası veya araç modeli yazarak arayın.</div>
+
+</div>
+
+<script>
+
+const products = [
+{
+oem:"681720007R",
+name:"Airbag Makarası",
+vehicles:[
+"Renault Master III",
+"Renault Megane III",
+"Renault Laguna III"
+],
+note:"Sahada Master 3, Megane 3 ve Laguna 3 üzerinde uyumluluğu teyit edildi.",
+verified:true
+},
+{
+oem:"25560-BT25A",
+name:"Airbag Makarası",
+vehicles:["Nissan Qashqai J10"],
+note:"Qashqai J10 için kullanılan tip. Araç donanımına göre soket kontrolü yapılmalıdır.",
+verified:false
+},
+{
+oem:"25567-4CL0A",
+name:"Airbag Makarası",
+vehicles:[
+"Renault Clio IV",
+"Nissan Qashqai",
+"Nissan X-Trail"
+],
+note:"Montaj öncesinde araç üzerindeki OEM numarası ile karşılaştırın.",
+verified:false
+},
+{
+oem:"6R0959653",
+name:"Airbag Makarası",
+vehicles:["Volkswagen Amarok"],
+note:"OEM ve soket yapısı kontrol edilmelidir.",
+verified:false
+},
+{
+oem:"93490-1G210",
+name:"Airbag Makarası",
+vehicles:["Kia Rio"],
+note:"Model yılı ve direksiyon donanımına göre kontrol edilmelidir.",
+verified:false
+},
+{
+oem:"25567-5601R",
+name:"Airbag Makarası",
+vehicles:["Renault Clio V"],
+note:"Clio 5 uygulaması. Araç üzerindeki OEM ile teyit edilmelidir.",
+verified:false
+},
+{
+oem:"5Q0 907 511A",
+name:"Klima / HVAC Kontrol Parçası",
+vehicles:["Volkswagen Grubu araçlar"],
+note:"Kesin araç uyumluluğu parça revizyonuna göre kontrol edilmelidir.",
+verified:false
+}
+];
+
+function normalize(text){
+ return text
+ .toUpperCase()
+ .replace(/İ/g,"I")
+ .replace(/Ğ/g,"G")
+ .replace(/Ü/g,"U")
+ .replace(/Ş/g,"S")
+ .replace(/Ö/g,"O")
+ .replace(/Ç/g,"C")
+ .replace(/[\s\-]/g,"");
+}
+
+function searchOEM(){
+ const q=document.getElementById("search").value.trim();
+
+ if(!q){
+   document.getElementById("results").innerHTML="";
+   document.getElementById("message").innerText=
+   "Arama yapmak için OEM veya araç yazın.";
+   return;
+ }
+
+ const nq=normalize(q);
+
+ const found=products.filter(p=>{
+   const all=[p.oem,p.name,...p.vehicles].join(" ");
+   return normalize(all).includes(nq);
+ });
+
+ showResults(found);
+}
+
+function showResults(found){
+ const area=document.getElementById("results");
+ const message=document.getElementById("message");
+
+ area.innerHTML="";
+
+ if(found.length===0){
+   message.innerHTML=
+   "<b>Sonuç bulunamadı.</b><br>Bu OEM henüz veritabanında olmayabilir.";
+   return;
+ }
+
+ message.innerHTML="";
+
+ found.forEach(p=>{
+   const card=document.createElement("div");
+   card.className="card";
+
+   let vehicles="";
+   p.vehicles.forEach(v=>{
+     vehicles+=`<div class="vehicle">🚗 ${v}</div>`;
+   });
+
+   card.innerHTML=`
+     <div class="oem">${p.oem}</div>
+     <h3>${p.name}</h3>
+     ${vehicles}
+     <div class="note">
+       <b>Saha / Kontrol Notu:</b><br>${p.note}
+     </div>
+     ${p.verified ?
+       '<div class="badge">✓ SAHADA TEYİTLİ</div>' : ''}
+   `;
+
+   area.appendChild(card);
+ });
+}
+
+document.getElementById("search")
+.addEventListener("keyup",function(e){
+ if(e.key==="Enter") searchOEM();
+});
+
+</script>
+
+</body>
+</html>
